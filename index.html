@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Online CSV Editor</title>
+	<script src='jquery-3.2.1.min.js'></script>
+	<script src='_.js'></script>
+</head>
+<body>
+
+	<input type='file' />
+	<button type="button" onclick="download()">Download updated</button>
+
+	<div id='area'></div>
+
+	<button type="button" onclick="addRow()">Add row</button>
+	<button type="button" onclick="addColumn()">Add column</button>
+
+	<script type='text/template' id='table-template'>
+		<@ _.each(f, function(a) { @>
+			<table border='1' style="margin: 20px; display: inline-block;" borderspacing='0' borderpadding='0' cellspacing="0" cellpadding="5">
+				<thead>
+					<tr>
+						<@ _.each(a.columns, function(c, i) { @>
+						<th><input onkeyup="updateColumnValue(<@= i @>, this.value)" value="<@= c @>" /></th>
+						<@ }); @>
+					</tr>
+				</thead>
+				<tbody>
+					<@ _.each(a.rows, function(r, i) { @>
+					<tr>
+						<@ _.each(r, function(c, j) { @>
+						<td><input onkeyup="updateValue(<@= i @>, <@= j @>, this.value)" value="<@= c @>" /></td>
+						<@ }); @>
+					</tr>
+					<@ }); @>
+				</tbody>
+			</table>
+		<@ }); @>
+	</script>
+
+	
+<script>
+
+	var finalArr = [];
+
+	$('[type=file]').on('change', function() {
+		var file = this.files[0];
+
+		var fr = new FileReader();
+
+		fr.readAsText(file);
+
+		fr.addEventListener('load', function(d) {
+			var data = d.target.result;
+			proceed(data);
+
+		});
+	});
+
+	function proceed(a) {
+		var fileArr = [];
+
+		
+			
+			
+			var arr = a.split('\n'); 
+			for (var j = 0; j < arr.length; j++) {
+				fileArr.push(arr[j].split(','));
+			}
+		
+		
+
+		//console.log(fileArr);
+
+		
+
+		var o = {columns: [], rows: []};
+		for (var m = 0; m < fileArr.length; m++) {
+			if (m == 0) {
+				o.columns = fileArr[m];
+			}
+			else {
+				o.rows.push(fileArr[m]);
+			}
+		}
+
+		finalArr.push(o);
+		
+
+		$('#area').html(_.template($('#table-template').html())({f: finalArr}));
+	}
+
+	function download() {
+		var csv = '';
+
+		csv = finalArr[0].columns.join(',') + '\n';
+
+		for (var i = 0; i < finalArr[0].rows.length; i++) {
+			csv += finalArr[0].rows[i].join(',');
+
+			if (i != finalArr[0].rows.length - 1) {
+				csv += '\n';
+			}
+		}
+
+
+		//console.log(csv);
+
+		var fileName = $('[type=file]')[0].files[0].name;
+
+		var a = document.createElement('a');
+		a.download = fileName;
+		var b = new Blob([csv], {type: 'text/csv'});
+		a.href=window.URL.createObjectURL(b);
+		$('body').append(a);
+		a.click();
+		a.remove();
+	}
+
+	function updateColumnValue(i, v) {
+		finalArr[0].columns[i] = v;
+	}
+
+	function updateValue(i, j, v) {
+		finalArr[0].rows[i][j] = v;
+	}
+
+	function addRow() {
+		finalArr[0].rows.push(new Array(finalArr[0].columns.length));
+
+		$('#area').html(_.template($('#table-template').html())({f: finalArr}));
+	}
+
+	function addColumn() {
+		finalArr[0].columns.push('');
+
+		for (var i = 0; i < finalArr[0].rows.length; i++) {
+			finalArr[0].rows[i].push('');
+		}
+
+		$('#area').html(_.template($('#table-template').html())({f: finalArr}));
+	}
+</script>
+</body>
+</html>
