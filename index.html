@@ -21,7 +21,7 @@
 				<thead>
 					<tr>
 						<@ _.each(a.columns, function(c, i) { @>
-						<th><input onkeyup="updateColumnValue(<@= i @>, this.value)" value="<@= c @>" /></th>
+						<th><input onkeyup="updateColumnValue(<@= i @>, this.value)" value="<@= c @>" /> <@ if (true) { @>&nbsp; &nbsp; &nbsp; <span onclick="deleteColumn(<@= i @>)" style="font-size: 20px;">&times</span><@ } @></th>
 						<@ }); @>
 					</tr>
 				</thead>
@@ -29,7 +29,11 @@
 					<@ _.each(a.rows, function(r, i) { @>
 					<tr>
 						<@ _.each(r, function(c, j) { @>
-						<td><input onkeyup="updateValue(<@= i @>, <@= j @>, this.value)" value="<@= c @>" /></td>
+						<td>
+							<@ if (j == 0) { @>
+								<span style="font-size: 20px;" onclick="deleteRow(<@= i @>)">&times;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+							<@ } @>
+							<input onkeyup="updateValue(<@= i @>, <@= j @>, this.value)" value="<@= c @>" /></td>
 						<@ }); @>
 					</tr>
 					<@ }); @>
@@ -136,6 +140,21 @@
 
 		for (var i = 0; i < finalArr[0].rows.length; i++) {
 			finalArr[0].rows[i].push('');
+		}
+
+		$('#area').html(_.template($('#table-template').html())({f: finalArr}));
+	}
+
+	function deleteRow(i) {
+		finalArr[0].rows.splice(i, 1);
+		$('#area').html(_.template($('#table-template').html())({f: finalArr}));
+	}
+
+	function deleteColumn(i) {
+		finalArr[0].columns.splice(i, 1);
+
+		for (var j = 0; j < finalArr[0].rows.length; j++) {
+			finalArr[0].rows[j].splice(i, 1);
 		}
 
 		$('#area').html(_.template($('#table-template').html())({f: finalArr}));
